@@ -8,11 +8,11 @@ const srcPath = path.resolve(__dirname, 'src')
 
 module.exports = {
   entry: {
-    entry: './index.js'
+    entry: './src/index.js'
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js'
+    filename: '[name].[chunkhash:6].js'
   },
   module: {
     rules: [{
@@ -30,13 +30,23 @@ module.exports = {
       // style-loader 会将 css-loader 解析的结果转变为 js 代码，在运行时动态插入 style 标签来让 CSS 生效
       use: ExtractTextPlugin.extract({
         fallback: 'style-loader',
-        use: ['css-loader', 'postcss-loader']
+        use: [
+          {
+            loader: 'css-loader',
+            options: {
+              importLoaders: 1
+            }
+          },
+          'postcss-loader'
+        ]
       })
     }, {
       test: /\.(png|jpg|gif|svg|jpeg)$/,
       use: [{
-        loader: 'file-loader',
-        options: {}
+        loader: 'url-loader',
+        options: {
+          limit: 64 * 1024 * 1024
+        }
       }]
     }]
   },
@@ -46,14 +56,20 @@ module.exports = {
       'node_modules',
       srcPath
     ],
-    extensions: ['.wasm', '.mjs', '.js', '.json', '.jsx']
+    extensions: ['.wasm', '.mjs', '.js', '.json', '.jsx', '.scss', '.css']
   },
   plugins: [
     new HtmlWebpackPlugin({
-      filename: 'index.html',
-      template: './src/index.html'
+      filename: './index.html',
+      template: './src/index.html',
+      title: 'webpack advance tutorial'
     }),
     new ExtractTextPlugin('index.css'),
     new UglifyPlugin()
-  ]
+  ],
+  devServer: {
+    contentBase: path.join(__dirname, 'dist'),
+    compress: true,
+    port: 8081
+  }
 }
